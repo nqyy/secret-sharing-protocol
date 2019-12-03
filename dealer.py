@@ -6,7 +6,7 @@ class dealer:
         self.peer_ip_file = peer_ip_file
         self.peer_ip = list()
         self.__parse_peer_ip()
-        self.secret = 0
+        self.secret = None
         
     def make_secret(self,secret):
         self.secret = secret
@@ -64,7 +64,7 @@ class dealer:
 
 if __name__ == "__main__":
     d = dealer('peer_ip.txt')
-    d.make_secret(123)
+    d.make_secret('alkdfjlakdjflkdjfkladsjflkadjflkadjflkadjfldksjflasdkfjadlkfdflkjadklfjalkfdjlkadfadflakdfjlakdjflkdajflksjadflkjsakljdf')
     d.send_secret_to_peers()
 
     

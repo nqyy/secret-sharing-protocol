@@ -11,7 +11,7 @@ class node:
     def receive_secret(self):
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         server_address = (self.ip, self.port)
-        print('starting up on %s port %s' % server_address)
+        print('starting up on %s port %s\n' % server_address)
         sock.bind(server_address)
         sock.listen(1)
         print('Waiting on dealer...')
@@ -32,7 +32,7 @@ class node:
                     print('Receive end.')
                     break
         finally:
-            print('closing connection.')
+            print('closing connection.\n')
             connection.close()
 
 
