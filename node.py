@@ -14,27 +14,26 @@ class node:
         print('starting up on %s port %s' % server_address)
         sock.bind(server_address)
         sock.listen(1)
-        while True:
-            print('Waiting on dealer...')
-            connection, dealer_address = sock.accept()
-            try:
-                print('Connection from ',dealer_address)
-                counter = 0
-                while True:
-                    data = connection.recvfrom(1024)
-                    if data:
-                        counter+=1
-                        res = 'ACK ' + str(counter)
-                        res = res.encode('utf-8')
-                        print(data)
-                        print('Sending ACK back to dealer: ',dealer_address)
-                        connection.send(res)
-                    else:
-                        print('Receive end.')
-                        break
-            finally:
-                print('closing connection.')
-                connection.close()
+        print('Waiting on dealer...')
+        connection, dealer_address = sock.accept()
+        try:
+            print('Connection from ',dealer_address)
+            counter = 0
+            while True:
+                data = connection.recv(1024)
+                if data:
+                    counter+=1
+                    res = 'ACK ' + str(counter)
+                    res = res.encode('utf-8')
+                    print(data.decode('utf-8'))
+                    print('Sending ACK back to dealer: ',dealer_address)
+                    connection.send(res)
+                else:
+                    print('Receive end.')
+                    break
+        finally:
+            print('closing connection.')
+            connection.close()
 
 
     def receive_peer_ip(self):

@@ -23,6 +23,7 @@ class dealer:
                 s.connect((tcp_ip,tcp_port))
                 data = str(self.secret).encode('utf-8')
                 print(type(data))
+                print(data)
                 s.sendall(data)
                 ack = s.recv(buffer_size).decode('utf-8')
                 print('Received ACK: ' + ack)
@@ -41,7 +42,7 @@ class dealer:
                 s = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
                 print("Connecting to {} port {}".format(tcp_ip,str(tcp_port)))
                 s.connect((tcp_ip,tcp_port))
-                s.sendall(peer_ip_temp)
+                s.send(peer_ip_temp)
                 ack = s.recv(buffer_size).decode('utf-8')
                 print('Received ACK: ' + ack)
             finally:
