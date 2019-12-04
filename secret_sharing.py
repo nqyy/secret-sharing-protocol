@@ -3,7 +3,6 @@ from Crypto.Util import number
 from Crypto.Util.number import long_to_bytes, bytes_to_long
 from Crypto.Random import get_random_bytes as rng
 
-
 def ss_encode(val):
     return number.long_to_bytes(val, 16)
 

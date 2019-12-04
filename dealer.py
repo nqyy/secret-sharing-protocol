@@ -27,47 +27,46 @@ class dealer:
             share = self.shares[i]
 
             try:
-                s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                s = TCPsocket()
+                # s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 print("Connecting to {} port {}".format(tcp_ip, str(tcp_port)))
-                s.connect((tcp_ip, tcp_port))
+                s.connect(tcp_ip, tcp_port)
 
                 print("share #", i, ":", ss_decode(share[1]))
-                s.sendall(share[1])
-                ack = s.recv(self.buffer_size).decode('utf-8')
-                print('Received ACK: ' + ack)
+                s.socket.sendall(share[1])
 
             finally:
                 print("Closing connection with {}:{}".format(
                     tcp_ip, str(tcp_port)))
                 s.close()
 
-    def send_peers_ip(self):
-        #self.buffer_size = 1024
-        peer_ip_temp = pickle.dumps(self.peer_ip)
-        print(len(peer_ip_temp))
-        total_pack = math.ceil(len(peer_ip_temp)/self.buffer_size)
-        for peer in self.peer_ip:
-            tcp_ip = peer['ip']
-            tcp_port = peer['port']
+    # def send_peers_ip(self):
+    #     #self.buffer_size = 1024
+    #     peer_ip_temp = pickle.dumps(self.peer_ip)
+    #     print(len(peer_ip_temp))
+    #     total_pack = math.ceil(len(peer_ip_temp)/self.buffer_size)
+    #     for peer in self.peer_ip:
+    #         tcp_ip = peer['ip']
+    #         tcp_port = peer['port']
 
-            s = TCPsocket()
-            s.connect(tcp_ip, tcp_port)
-            s.send_ip_list(self.peer_ip)
-            s.close()
-            # try:
-            #     cur_pack = 0
-            #     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            #     print("Connecting to {} port {}".format(tcp_ip, str(tcp_port)))
-            #     s.connect((tcp_ip, tcp_port))
-            #     s.sendall(peer_ip_temp)
-            #     while cur_pack < total_pack:
-            #         ack = s.recv(self.buffer_size).decode('utf-8')
-            #         print('Received ACK: ' + ack)
-            #         cur_pack += 1
-            # finally:
-            #     print("Closing connection with {}:{}".format(
-            #         tcp_ip, str(tcp_port)))
-            #     s.close()
+    #         s = TCPsocket()
+    #         s.connect(tcp_ip, tcp_port)
+    #         s.send_ip_list(self.peer_ip)
+    #         s.close()
+    #         # try:
+    #         #     cur_pack = 0
+    #         #     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    #         #     print("Connecting to {} port {}".format(tcp_ip, str(tcp_port)))
+    #         #     s.connect((tcp_ip, tcp_port))
+    #         #     s.sendall(peer_ip_temp)
+    #         #     while cur_pack < total_pack:
+    #         #         ack = s.recv(self.buffer_size).decode('utf-8')
+    #         #         print('Received ACK: ' + ack)
+    #         #         cur_pack += 1
+    #         # finally:
+    #         #     print("Closing connection with {}:{}".format(
+    #         #         tcp_ip, str(tcp_port)))
+    #         #     s.close()
 
     def __parse_peer_ip(self):
         with open(self.peer_ip_file) as f:

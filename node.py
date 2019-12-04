@@ -20,7 +20,10 @@ class node:
 
         conn, addr = self.servsock.accept()
         conn = TCPsocket(conn)
-        self.peer_ip = conn.recv_ip_list()
+
+        self.secret = conn.recv_all(16)
+        print(ss_decode(self.secret))
+        conn.close()
 
         while True:
             conn, addr = self.servsock.accept()
