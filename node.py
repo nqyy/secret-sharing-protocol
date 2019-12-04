@@ -1,7 +1,7 @@
 import socket
 import pickle
 from secret_sharing import *
-
+from tcp_socket import TCPsocket
 
 class node:
     def __init__(self, ip, port, buffer_size=1024):
@@ -10,6 +10,17 @@ class node:
         self.port = port
         self.secret = 0
         self.peer_ip = list()
+        self.sockets = list()
+
+        self.secret_shares = []
+
+    def server_listen(self):
+        self.servsock = TCPsocket()
+        self.servsock.bind_listen(self.port)
+        while True:
+            conn, addr = self.servsock.accept()
+            conn = TCPsocket(conn)
+            self.secret_shares.append(conn.recv_int())
 
     def receive_secret(self):
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -71,5 +82,14 @@ class node:
         finally:
             self.peer_ip = pickle.loads(b"".join(ip_data))
             print(self.peer_ip)
+            self.sockets = []
+            for ip_dict in self.peer_ip:
+                self.sockets.append(TCPsocket())
+                self.sockets[-1].connect(ip_dict['ip'], ip_dict['port'])
+
             print('closing connection.\n')
             connection.close()
+
+    def broadcast(self, secret):
+        for sock in self.sockets:
+            sock.send_int(secret)
