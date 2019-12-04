@@ -1,5 +1,6 @@
 import socket
 import pickle
+from secret_sharing import *
 
 
 class node:
@@ -27,7 +28,7 @@ class node:
                     counter += 1
                     res = str(counter)
                     res = res.encode('utf-8')
-                    print(data.decode('utf-8'))
+                    print(ss_decode(data))
                     print('Sending ACK back to dealer: ', dealer_address)
                     connection.send(res)
                 else:
@@ -72,9 +73,3 @@ class node:
             print(self.peer_ip)
             print('closing connection.\n')
             connection.close()
-
-
-if __name__ == "__main__":
-    n = node('127.0.0.1', 5005)
-    # n.receive_secret()
-    n.receive_peer_ip()

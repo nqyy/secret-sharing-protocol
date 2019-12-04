@@ -2,6 +2,9 @@ import socket
 import sys
 import pickle
 import math
+from secret_sharing import *
+import Crypto
+import binascii
 
 
 class dealer:
@@ -11,25 +14,28 @@ class dealer:
         self.peer_ip = list()
         self.__parse_peer_ip()
         self.secret = None
+        self.shares = []
 
-    def make_secret(self, secret):
+    def make_secret(self, secret, n, k):
         self.secret = secret
+        self.shares = SecretSharing.split(k, n, secret)
 
     def send_secret_to_peers(self):
-        for peer in self.peer_ip:
-            tcp_ip = peer['ip']
-            tcp_port = peer['port']
+        for i in range(0, len(self.peer_ip)):
+            tcp_ip = self.peer_ip[i]['ip']
+            tcp_port = self.peer_ip[i]['port']
+            share = self.shares[i]
 
             try:
                 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 print("Connecting to {} port {}".format(tcp_ip, str(tcp_port)))
                 s.connect((tcp_ip, tcp_port))
-                data = str(self.secret).encode('utf-8')
-                print(type(data))
-                print(data)
-                s.sendall(data)
+
+                print("share #", i, ":", ss_decode(share[1]))
+                s.sendall(share[1])
                 ack = s.recv(self.buffer_size).decode('utf-8')
                 print('Received ACK: ' + ack)
+
             finally:
                 print("Closing connection with {}:{}".format(
                     tcp_ip, str(tcp_port)))
@@ -67,10 +73,3 @@ class dealer:
                 temp['ip'] = ip
                 temp['port'] = int(port)
                 self.peer_ip.append(temp)
-
-
-if __name__ == "__main__":
-    d = dealer('peer_ip.txt')
-    d.make_secret(123)
-    # d.send_secret_to_peers()
-    d.send_peers_ip()

@@ -1,12 +1,6 @@
 import binascii
-from secret_sharing import SecretSharing
+from secret_sharing import *
 import Crypto
-
-def ss_encode(val):
-    return Crypto.Util.number.long_to_bytes(val, 16)
-
-def ss_decode(val):
-    return Crypto.Util.number.bytes_to_long(val)
 
 # dealer
 key = 123 # the secret to share

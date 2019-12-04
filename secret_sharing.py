@@ -4,6 +4,14 @@ from Crypto.Util.number import long_to_bytes, bytes_to_long
 from Crypto.Random import get_random_bytes as rng
 
 
+def ss_encode(val):
+    return number.long_to_bytes(val, 16)
+
+
+def ss_decode(val):
+    return number.bytes_to_long(val)
+
+
 def _mult_gf2(f1, f2):
     """Multiply two polynomials in GF(2)"""
 
