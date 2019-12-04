@@ -5,7 +5,7 @@ import math
 from secret_sharing import *
 import Crypto
 import binascii
-
+from tcp_socket import TCPsocket
 
 class dealer:
     def __init__(self, peer_ip_file, buffer_size=1024):
@@ -50,20 +50,24 @@ class dealer:
             tcp_ip = peer['ip']
             tcp_port = peer['port']
 
-            try:
-                cur_pack = 0
-                s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                print("Connecting to {} port {}".format(tcp_ip, str(tcp_port)))
-                s.connect((tcp_ip, tcp_port))
-                s.sendall(peer_ip_temp)
-                while cur_pack < total_pack:
-                    ack = s.recv(self.buffer_size).decode('utf-8')
-                    print('Received ACK: ' + ack)
-                    cur_pack += 1
-            finally:
-                print("Closing connection with {}:{}".format(
-                    tcp_ip, str(tcp_port)))
-                s.close()
+            s = TCPsocket()
+            s.connect(tcp_ip, tcp_port)
+            s.send_ip_list(self.peer_ip)
+            s.close()
+            # try:
+            #     cur_pack = 0
+            #     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            #     print("Connecting to {} port {}".format(tcp_ip, str(tcp_port)))
+            #     s.connect((tcp_ip, tcp_port))
+            #     s.sendall(peer_ip_temp)
+            #     while cur_pack < total_pack:
+            #         ack = s.recv(self.buffer_size).decode('utf-8')
+            #         print('Received ACK: ' + ack)
+            #         cur_pack += 1
+            # finally:
+            #     print("Closing connection with {}:{}".format(
+            #         tcp_ip, str(tcp_port)))
+            #     s.close()
 
     def __parse_peer_ip(self):
         with open(self.peer_ip_file) as f:
