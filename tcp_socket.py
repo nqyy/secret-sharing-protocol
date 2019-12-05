@@ -2,6 +2,7 @@ import socket
 from message import MessageManager
 from struct import pack, unpack
 
+
 class TCPsocket:
     def __init__(self, conn=None):
         self.socket = socket.socket() if not conn else conn
@@ -32,27 +33,6 @@ class TCPsocket:
         self.socket.close()
         if log:
             print('Closing socket')
-
-    # def send_ip_list(self, ip_list):
-    #     res_lst = []
-    #     for ip, _ in ip_list:
-    #         res_lst.append(ip)
-    #     for _, port in ip_list:
-    #         res_lst.append(port)
-
-    #     res_str = ','.join(res_lst)+'/n'
-    #     self.socket.sendall(res_str.encode())
-
-    # def recv_ip_list(self):
-    #     res_str = ''
-    #     while True:
-    #         res_str += self.socket.recv(10).decode()
-    #         if res_str[-1] == '\n':
-    #             res_str = res_str[:-1]
-    #             break
-    #     res_lst = res_str.split(',')
-    #     ips, ports = res_lst[:len(res_lst)//2], res_lst[len(res_lst)//2:]
-    #     return list(zip(ips, ports))
 
     def send_all(self, bytes):
         self.socket.sendall(bytes)
