@@ -17,7 +17,8 @@ class peer:
         self.buffer_size = buffer_size
         self.ip = ip
         self.port = port
-        self.secret = None
+        self.secret = None # for dealer
+        self.share = None # for particiapnt
 
         self.peer_ip = []
         self.__parse_peer_ip(peer_ip_file)
@@ -31,6 +32,9 @@ class peer:
         '''
         dealer method
         '''
+        if self.role != "d":
+            print("Warning: wrong role!")
+            return
         self.secret = secret
         self.shares = SecretSharing.split(k, n, secret)
 
@@ -38,11 +42,14 @@ class peer:
         '''
         dealer method
         '''
+        if self.role != "d":
+            print("Warning: wrong role!")
+            return
+
         for i in range(0, len(self.peer_ip)):
             tcp_ip = self.peer_ip[i]['ip']
             tcp_port = self.peer_ip[i]['port']
             share = self.shares[i]
-
             s = TCPsocket()
             try:
                 s.connect(tcp_ip, tcp_port)
@@ -61,7 +68,6 @@ class peer:
             try:
                 s.connect(tcp_ip, tcp_port)
                 s.send_message(message.DealerExitMessage)
-
             finally:
                 s.close()
 
@@ -72,27 +78,20 @@ class peer:
         self.servsock = TCPsocket()
         self.servsock.bind_listen(self.port)
 
-        conn, _ = self.servsock.accept()
-        conn = TCPsocket(conn)
-        self.secret = conn.recv_message(message.AssignMessage)
-        print(ss_decode(self.secret[1]))
-        conn.send_message(message.AckMessage)
-        conn.close()
-
-        conn, _ = self.servsock.accept()
-        conn = TCPsocket(conn)
-        conn.recv_message(message.DealerExitMessage)
-        conn.close()
-
-        self.dealer_exited = True
-
         while True:
             conn, _ = self.servsock.accept()
             conn = TCPsocket(conn)
             cls, content = conn.recv_message()
-            if cls == message.RequestMessage:
+            if cls == message.AssignMessage:
+                self.share = content
+                print(ss_decode(self.share[1]))
+                conn.send_message(message.AckMessage)
+            elif cls == message.DealerExitMessage:
+                print("dealer exited recieved")
+                self.dealer_exited = True
+            elif cls == message.RequestMessage:
                 print('Received Request Message')
-                self.broadcast()
+                self.broadcast(message.ShareMessage, *self.share)
             elif cls == message.ShareMessage:
                 self.secret_shares.append(content)
             conn.close()
@@ -103,13 +102,12 @@ class peer:
         '''
         while self.dealer_exited == False:
             sleep(1)
-        while input('Enter "RECONSTRUCT" to share your secret: ').lower() not in ['reconsruct', '"reconsruct"']:
+        while input('Enter "RECONSTRUCT" to share your secret: ').lower() not in ['reconstruct', '"reconstruct"']:
             continue
 
         for i in range(0, len(self.peer_ip)):
             tcp_ip = self.peer_ip[i]['ip']
             tcp_port = self.peer_ip[i]['port']
-            share = self.secret
 
             s = TCPsocket()
             try:
@@ -127,11 +125,11 @@ class peer:
             ss_decode(SecretSharing.combine(self.secret_shares))))
         os._exit(1)
 
-    def broadcast(self):
+    def broadcast(self, msg, id, content):
         for ip_dict in self.peer_ip:
             sock = TCPsocket()
             sock.connect(ip_dict['ip'], ip_dict['port'])
-            sock.send_message(message.ShareMessage, *self.secret)
+            sock.send_message(msg, id, content)
             sock.close()
 
     def __parse_peer_ip(self, peer_ip_file):
@@ -144,6 +142,7 @@ class peer:
                 self.peer_ip.append(temp)
 
 
+# command line mode
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--role', type=str, default="p",
@@ -163,8 +162,8 @@ if __name__ == "__main__":
 
         # encrypt_file(key, "secret_file.txt", "encrypted_file.enc")
 
-        print("dividing the secret to", n, "shares")
-        print(k, "peers can reconstruct the secret")
+        print("dividing the secret to", n, "shares and ",
+              k, "peers can reconstruct the secret")
         d.make_secret(key, n, k)
         d.send_secret_to_peers()
     else:
@@ -176,18 +175,31 @@ if __name__ == "__main__":
         n.peer_reconstruct()
 
 
-# interactive mode
-#
+# # interactive mode
 # if __name__ == "__main__":
-#     role = int(input("Enter your role : \n"+
-#                     "1. dealer\n"+
-#                     "2 . peer\n"))
-#     if role == 1:
-#         sec = int(input("Enter your secret\n"))
-#         d = dealer('peer_ip.txt')
-#         d.make_secret(sec)
+#     role = input("Please enter your role d(dealer) / p(participant) :")
+#     ip_and_port = input("Please enter your IP:port :")
+#     ip, port = ip_and_port.split(':')
+#     port = int(port)
+
+#     if role == "d":
+#         d = peer(role, ip, port, 'peer_ip.txt')
+#         n = len(d.peer_ip)  # how many shares
+#         # how many people can reconstruct the secret
+#         k = math.ceil(n * (2.0/3.0))
+#         key = get_random_bytes(16)
+#         print("Dealer: the key is", ss_decode(key))
+
+#         # encrypt_file(key, "secret_file.txt", "encrypted_file.enc")
+
+#         print("dividing the secret to", n, "shares and ",
+#               k, "peers can reconstruct the secret")
+#         d.make_secret(key, n, k)
 #         d.send_secret_to_peers()
 #     else:
-#         port = int(input("Enter port number:\n"))
-#         n = node('127.0.0.1',port)
-#         n.receive_secret()
+#         n = peer(role, ip, port, 'peer_ip.txt')
+#         server_thread = Thread(target=n.server_listen, daemon=True)
+#         server_thread.start()
+#         cleanup_thread = Thread(target=n.combine_share, daemon=False)
+#         cleanup_thread.start()
+#         n.peer_reconstruct()
