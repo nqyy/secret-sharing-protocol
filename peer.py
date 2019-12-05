@@ -4,6 +4,7 @@ import argparse
 import math
 from Crypto.Random import get_random_bytes
 from AES import encrypt_file, decrypt_file
+from threading import Thread
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -27,8 +28,13 @@ if __name__ == "__main__":
         d.make_secret(key, n, k)
         d.send_secret_to_peers()
     else:
-        n = node('127.0.0.1', opt.port)
-        n.server_listen()
+        n = node('127.0.0.1', opt.port, 'peer_ip.txt')
+        server_thread = Thread(target=n.server_listen, daemon=True)
+        server_thread.start()
+        cleanup_thread = Thread(target=n.combine_share, daemon=False)
+        cleanup_thread.start()
+        n.user_sharing()
+
 
 # interactive mode
 #

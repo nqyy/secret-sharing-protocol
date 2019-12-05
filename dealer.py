@@ -6,6 +6,7 @@ from secret_sharing import *
 import Crypto
 import binascii
 from tcp_socket import TCPsocket
+import message
 
 class dealer:
     def __init__(self, peer_ip_file, buffer_size=1024):
@@ -26,19 +27,32 @@ class dealer:
             tcp_port = self.peer_ip[i]['port']
             share = self.shares[i]
 
+            s = TCPsocket()
             try:
-                s = TCPsocket()
-                # s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                print("Connecting to {} port {}".format(tcp_ip, str(tcp_port)))
                 s.connect(tcp_ip, tcp_port)
 
                 print("share #", i, ":", ss_decode(share[1]))
-                s.socket.sendall(share[1])
+                s.send_message(message.AssignMessage, share[0], share[1])
+                s.recv_message(message.AckMessage)
 
             finally:
-                print("Closing connection with {}:{}".format(
-                    tcp_ip, str(tcp_port)))
                 s.close()
+
+
+        for i in range(0, len(self.peer_ip)):
+            tcp_ip = self.peer_ip[i]['ip']
+            tcp_port = self.peer_ip[i]['port']
+            share = self.shares[i]
+
+            s = TCPsocket()
+            try:
+                s.connect(tcp_ip, tcp_port)
+                s.send_message(message.DealerExitMessage)
+
+            finally:
+                s.close()
+
+        print('target: {}'.format(ss_decode(self.secret)))
 
     # def send_peers_ip(self):
     #     #self.buffer_size = 1024
