@@ -85,11 +85,21 @@ class RequestMessage:
     def identifier():
         return b'Reqst'
 
-
-class ShareMessage:
+class ResponseMessage:
     @staticmethod
     def identifier():
-        return b'SHARE'
+        return b'Resps'
+
+class RecoveryOneMessage:
+    @staticmethod
+    def identifier():
+        return b'Recv1'
+
+
+class RecoveryTwoMessage:
+    @staticmethod
+    def identifier():
+        return b'Recv2'
 
     @staticmethod
     def encode(ix, secret):

@@ -21,6 +21,7 @@ class peer:
         self.share = None # for particiapnt
 
         self.peer_ip = []
+        self.num_response = 0
         self.__parse_peer_ip(peer_ip_file)
 
         self.secret_shares = []
@@ -87,12 +88,17 @@ class peer:
                 print(ss_decode(self.share[1]))
                 conn.send_message(message.AckMessage)
             elif cls == message.DealerExitMessage:
-                print("dealer exited recieved")
+                print("Received Dealer Exit Message")
                 self.dealer_exited = True
             elif cls == message.RequestMessage:
-                print('Received Request Message')
-                self.broadcast(message.ShareMessage, *self.share)
-            elif cls == message.ShareMessage:
+                print('Received Request message')
+                conn.send_message(message.ResponseMessage)
+                conn.close()
+            elif cls == message.RecoveryOneMessage:
+                print('Received Recovery1 Message')
+                self.broadcast(message.RecoveryTwoMessage, *self.share)
+            elif cls == message.RecoveryTwoMessage:
+                print('Received Recovery2 Message')
                 self.secret_shares.append(content)
             conn.close()
 
@@ -105,16 +111,18 @@ class peer:
         while input('Enter "RECONSTRUCT" to share your secret: ').lower() not in ['reconstruct', '"reconstruct"']:
             continue
 
-        for i in range(0, len(self.peer_ip)):
-            tcp_ip = self.peer_ip[i]['ip']
-            tcp_port = self.peer_ip[i]['port']
+        self.num_response = 0
+        for ip_dict in self.peer_ip:
+            sock = TCPsocket()
+            sock.connect(ip_dict['ip'], ip_dict['port'])
+            sock.send_message(message.RequestMessage)
+            sock.recv_message(message.ResponseMessage)
+            sock.close()
+            self.num_response += 1
+            if self.num_response >= len(self.peer_ip)*3/4:
+                break
 
-            s = TCPsocket()
-            try:
-                s.connect(tcp_ip, tcp_port)
-                s.send_message(message.RequestMessage)
-            finally:
-                s.close()
+        self.broadcast(message.RecoveryOneMessage)
 
     def combine_share(self):
         while len(self.secret_shares) < len(self.peer_ip):
@@ -124,11 +132,11 @@ class peer:
         print('Combined shares: {}'.format(
             ss_decode(self.secret)))
 
-    def broadcast(self, msg, id, content):
+    def broadcast(self, *args):
         for ip_dict in self.peer_ip:
             sock = TCPsocket()
             sock.connect(ip_dict['ip'], ip_dict['port'])
-            sock.send_message(msg, id, content)
+            sock.send_message(*args)
             sock.close()
 
     def __parse_peer_ip(self, peer_ip_file):
@@ -167,7 +175,7 @@ if __name__ == "__main__":
         d.send_secret_to_peers()
     else:
         n = peer(opt.role, '127.0.0.1', opt.port, 'peer_ip.txt')
-        server_thread = Thread(target=n.server_listen, daemon=True)
+        server_thread = Thread(target=n.server_listen, daemon=False)
         server_thread.start()
         cleanup_thread = Thread(target=n.combine_share, daemon=False)
         cleanup_thread.start()
