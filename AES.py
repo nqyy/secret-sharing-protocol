@@ -21,6 +21,9 @@ def encrypt_file(key, in_filename, out_filename):
     fi = open(in_filename, "rb")
     ciphertext = encryptor.encrypt(fi.read())
 
+    if not os.path.exists(os.path.dirname(out_filename)):
+        os.makedirs(os.path.dirname(out_filename))
+
     fo = open(out_filename, "wb")
     fo.write(iv + ciphertext)
 
@@ -38,6 +41,9 @@ def decrypt_file(key, in_filename, out_filename):
     iv = fi.read(16)
     decryptor = AES.new(key, AES.MODE_CFB, IV=iv)
     plain = decryptor.decrypt(fi.read())
+
+    if not os.path.exists(os.path.dirname(out_filename)):
+        os.makedirs(os.path.dirname(out_filename))
 
     fo = open(out_filename, "wb")
     fo.write(plain)

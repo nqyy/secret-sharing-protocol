@@ -131,6 +131,9 @@ class peer:
         print('All secret shares: {}'.format(self.secret_shares))
         print('Combined shares: {}'.format(
             ss_decode(self.secret)))
+        # decrypt file
+        output_path = "safe/" + n.ip + ":" + str(n.port) + "/decrypted_file.txt"
+        decrypt_file(n.secret, "safe/enc_file.enc", output_path)
 
     def broadcast(self, *args):
         for ip_dict in self.peer_ip:
@@ -149,64 +152,64 @@ class peer:
                 self.peer_ip.append(temp)
 
 
-# command line mode
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--role', type=str, default="p",
-                        help='dealer=d, peer=p')
-    parser.add_argument('--port', type=int, default=5005,
-                        help='peer port number')
-
-    opt = parser.parse_args()
-
-    if opt.role == "d":
-        d = peer(opt.role, '127.0.0.1', opt.port, 'peer_ip.txt')
-        n = len(d.peer_ip)  # how many shares
-        # how many people can reconstruct the secret
-        k = math.ceil(n * (2.0/3.0))
-        key = get_random_bytes(16)
-        print("Dealer: the key is", ss_decode(key))
-
-        # encrypt_file(key, "secret_file.txt", "encrypted_file.enc")
-
-        print("dividing the secret to", n, "shares and ",
-              k, "peers can reconstruct the secret")
-        d.make_secret(key, n, k)
-        d.send_secret_to_peers()
-    else:
-        n = peer(opt.role, '127.0.0.1', opt.port, 'peer_ip.txt')
-        server_thread = Thread(target=n.server_listen, daemon=True)
-        server_thread.start()
-        cleanup_thread = Thread(target=n.combine_share, daemon=False)
-        cleanup_thread.start()
-        n.peer_reconstruct()
-
-
-# # interactive mode
+# # command line mode
 # if __name__ == "__main__":
-#     role = input("Please enter your role d(dealer) / p(participant) :")
-#     ip_and_port = input("Please enter your IP:port :")
-#     ip, port = ip_and_port.split(':')
-#     port = int(port)
+#     parser = argparse.ArgumentParser()
+#     parser.add_argument('--role', type=str, default="p",
+#                         help='dealer=d, peer=p')
+#     parser.add_argument('--port', type=int, default=5005,
+#                         help='peer port number')
 
-#     if role == "d":
-#         d = peer(role, ip, port, 'peer_ip.txt')
+#     opt = parser.parse_args()
+
+#     if opt.role == "d":
+#         d = peer(opt.role, '127.0.0.1', opt.port, 'peer_ip.txt')
 #         n = len(d.peer_ip)  # how many shares
 #         # how many people can reconstruct the secret
 #         k = math.ceil(n * (2.0/3.0))
 #         key = get_random_bytes(16)
 #         print("Dealer: the key is", ss_decode(key))
 
-#         # encrypt_file(key, "secret_file.txt", "encrypted_file.enc")
+#         encrypt_file(key, "safe/secret_file.txt", "safe/enc_file.enc")
 
 #         print("dividing the secret to", n, "shares and ",
 #               k, "peers can reconstruct the secret")
 #         d.make_secret(key, n, k)
 #         d.send_secret_to_peers()
 #     else:
-#         n = peer(role, ip, port, 'peer_ip.txt')
+#         n = peer(opt.role, '127.0.0.1', opt.port, 'peer_ip.txt')
 #         server_thread = Thread(target=n.server_listen, daemon=True)
 #         server_thread.start()
 #         cleanup_thread = Thread(target=n.combine_share, daemon=False)
 #         cleanup_thread.start()
 #         n.peer_reconstruct()
+
+
+# interactive mode
+if __name__ == "__main__":
+    role = input("Please enter your role d(dealer) / p(participant) :")
+    ip_and_port = input("Please enter your IP:port :")
+    ip, port = ip_and_port.split(':')
+    port = int(port)
+
+    if role == "d":
+        d = peer(role, ip, port, 'peer_ip.txt')
+        n = len(d.peer_ip)  # how many shares
+        # how many people can reconstruct the secret
+        k = math.ceil(n * (2.0/3.0))
+        key = get_random_bytes(16)
+        print("Dealer: the key is", ss_decode(key))
+
+        encrypt_file(key, "safe/secret_file.txt", "safe/enc_file.enc")
+
+        print("dividing the secret to", n, "shares and ",
+              k, "peers can reconstruct the secret")
+        d.make_secret(key, n, k)
+        d.send_secret_to_peers()
+    else:
+        n = peer(role, ip, port, 'peer_ip.txt')
+        server_thread = Thread(target=n.server_listen, daemon=True)
+        server_thread.start()
+        cleanup_thread = Thread(target=n.combine_share, daemon=False)
+        cleanup_thread.start()
+        n.peer_reconstruct()
