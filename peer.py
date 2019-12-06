@@ -119,11 +119,10 @@ class peer:
     def combine_share(self):
         while len(self.secret_shares) < len(self.peer_ip):
             sleep(1)
-
+        self.secret = SecretSharing.combine(self.secret_shares)
         print('All secret shares: {}'.format(self.secret_shares))
         print('Combined shares: {}'.format(
-            ss_decode(SecretSharing.combine(self.secret_shares))))
-        os._exit(1)
+            ss_decode(self.secret)))
 
     def broadcast(self, msg, id, content):
         for ip_dict in self.peer_ip:
