@@ -125,7 +125,7 @@ class peer:
         self.broadcast(message.RecoveryOneMessage)
 
     def combine_share(self):
-        while len(self.secret_shares) < len(self.peer_ip):
+        while len(self.secret_shares) < len(self.peer_ip)*2/3:
             sleep(1)
         self.secret = SecretSharing.combine(self.secret_shares)
         print('All secret shares: {}'.format(self.secret_shares))
@@ -175,7 +175,7 @@ if __name__ == "__main__":
         d.send_secret_to_peers()
     else:
         n = peer(opt.role, '127.0.0.1', opt.port, 'peer_ip.txt')
-        server_thread = Thread(target=n.server_listen, daemon=False)
+        server_thread = Thread(target=n.server_listen, daemon=True)
         server_thread.start()
         cleanup_thread = Thread(target=n.combine_share, daemon=False)
         cleanup_thread.start()
