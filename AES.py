@@ -1,4 +1,5 @@
 
+# Methods used for AES encryption and decryption.
 import os
 import random
 import struct
@@ -6,6 +7,14 @@ from Crypto.Cipher import AES
 
 
 def encrypt_file(key, in_filename, out_filename):
+    '''
+    AES encrypt the input file using provided key
+    output encrypted file
+    Args:
+        key: 16 byte AES key
+        in_filename: input secret file name
+        out_filename: output file name
+    '''
     iv = os.urandom(16)
     encryptor = AES.new(key, AES.MODE_CFB, IV=iv)
 
@@ -17,6 +26,14 @@ def encrypt_file(key, in_filename, out_filename):
 
 
 def decrypt_file(key, in_filename, out_filename):
+    '''
+    AES decrypt the input file using provided key
+    output decrypted file
+    Args:
+        key: 16 byte AES key
+        in_filename: input encrypted file name
+        out_filename: output decrypted file name
+    '''
     fi = open(in_filename, "rb")
     iv = fi.read(16)
     decryptor = AES.new(key, AES.MODE_CFB, IV=iv)

@@ -1,18 +1,35 @@
-# Referenced and modified from: https://github.com/Legrandin/pycryptodome/blob/master/lib/Crypto/Protocol/SecretSharing.py
+# Note: Referenced and modified from pycryptodome secret sharing library:
+# https://github.com/Legrandin/pycryptodome/blob/master/lib/Crypto/Protocol/SecretSharing.py
+# This library contains the methods and class used for the protocol.
 from Crypto.Util import number
 from Crypto.Util.number import long_to_bytes, bytes_to_long
 from Crypto.Random import get_random_bytes as rng
 
+
 def ss_encode(val):
+    '''
+    Customized encode for this secret sharing mechnism.
+    This converts long to bytes
+    Args:
+        val: long integer
+    '''
     return number.long_to_bytes(val, 16)
 
 
 def ss_decode(val):
+    '''
+    Customized decode for this secret sharing mechnism.
+    This converts bytes to long
+    Args:
+        val: input bytes
+    '''
     return number.bytes_to_long(val)
 
 
 def _mult_gf2(f1, f2):
-    """Multiply two polynomials in GF(2)"""
+    '''
+    Multiply two polynomials in GF(2)
+    '''
 
     # Ensure f2 is the smallest
     if f2 > f1:
