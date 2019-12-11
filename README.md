@@ -8,7 +8,7 @@ This serves as the final project for ECE 438. A real-world implementation based 
 Directory Structure
 -------------------
 ```
-secret_sharing_protocol/ .... Top src dir
+secret-sharing-protocol/ .... Top src dir
 |-- lib/ .................... Secret sharing and network library
     |-- AES.py .............. AES file encryption and decryption lib
     |-- message.py .......... Network message lib
